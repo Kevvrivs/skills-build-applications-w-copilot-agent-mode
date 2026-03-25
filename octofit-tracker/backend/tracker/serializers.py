@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Activity, Team
+from .models import Activity, Team, WorkoutSuggestion
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -24,4 +24,22 @@ class TeamSerializer(serializers.ModelSerializer):
     class Meta:
         model = Team
         fields = ['id', 'name', 'owner', 'members', 'created_at']
+
+
+class TeamLeaderboardSerializer(serializers.ModelSerializer):
+    total_distance = serializers.FloatField(read_only=True)
+    total_duration = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Team
+        fields = ['id', 'name', 'owner', 'members', 'created_at', 'total_distance', 'total_duration']
+
+
+class WorkoutSuggestionSerializer(serializers.ModelSerializer):
+    creator = UserSerializer(source='created_by', read_only=True)
+
+    class Meta:
+        model = WorkoutSuggestion
+        fields = ['id', 'name', 'description', 'difficulty', 'target_duration_minutes', 'target_distance_km', 'creator', 'created_at']
+
 

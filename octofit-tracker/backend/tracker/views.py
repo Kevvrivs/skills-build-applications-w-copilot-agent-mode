@@ -1,7 +1,8 @@
 from django.contrib.auth.models import User
+from django.db.models import Sum
 from rest_framework import generics, permissions
-from .models import Activity, Team
-from .serializers import ActivitySerializer, TeamSerializer, UserSerializer
+from .models import Activity, Team, WorkoutSuggestion
+from .serializers import ActivitySerializer, TeamLeaderboardSerializer, TeamSerializer, UserSerializer, WorkoutSuggestionSerializer
 
 
 class UserListAPIView(generics.ListAPIView):
@@ -36,3 +37,30 @@ class TeamRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return Team.objects.filter(members=self.request.user)
+
+
+class TeamLeaderboardAPIView(generics.ListAPIView):
+    serializer_class = TeamLeaderboardSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Team.objects.annotate(
+            total_distance=Sum('members__activities__distance_km'),
+            total_duration=Sum('members__activities__duration_minutes')
+        ).order_by('-total_distance', '-total_duration')
+
+
+class WorkoutSuggestionListCreateAPIView(generics.ListCreateAPIView):
+    queryset = WorkoutSuggestion.objects.all()
+    serializer_class = WorkoutSuggestionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+
+class WorkoutSuggestionRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = WorkoutSuggestion.objects.all()
+    serializer_class = WorkoutSuggestionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+

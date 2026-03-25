@@ -28,3 +28,25 @@ class Team(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class WorkoutSuggestion(models.Model):
+    LEVEL_CHOICES = [
+        ('easy', 'Easy'),
+        ('medium', 'Medium'),
+        ('hard', 'Hard'),
+    ]
+
+    name = models.CharField(max_length=150)
+    description = models.TextField(blank=True)
+    difficulty = models.CharField(max_length=10, choices=LEVEL_CHOICES, default='medium')
+    target_duration_minutes = models.PositiveIntegerField(default=30)
+    target_distance_km = models.FloatField(null=True, blank=True)
+    created_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='suggestions')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.name} ({self.difficulty})"
